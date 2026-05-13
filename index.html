@@ -663,7 +663,7 @@
 
       const existingRunId = runIdInput.value;
       const nextRun = {
-        id: existingRunId || crypto.randomUUID(),
+        id: existingRunId || createRunId(),
         date: dateInput.value,
         distance,
         duration,
@@ -697,7 +697,7 @@
         date.setDate(today.getDate() - sample.daysAgo);
 
         return {
-          id: crypto.randomUUID(),
+          id: createRunId(),
           date: toDateInputValue(date),
           distance: sample.distance,
           duration: sample.duration,
@@ -1038,6 +1038,14 @@
       start.setDate(start.getDate() + offset);
       start.setHours(0, 0, 0, 0);
       return start;
+    }
+
+    function createRunId() {
+      if (window.crypto && typeof window.crypto.randomUUID === "function") {
+        return window.crypto.randomUUID();
+      }
+
+      return `run-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     }
 
     function showToast(message) {
