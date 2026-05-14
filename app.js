@@ -35,14 +35,15 @@ const speedBars = document.querySelector("#speed-bars");
 const contributionBar = document.querySelector("#contribution-bar");
 const contributionLegend = document.querySelector("#contribution-legend");
 const toast = document.querySelector("#toast");
-const accordionPanels = Array.from(document.querySelectorAll("details.accordion"));
+const appPanels = Array.from(document.querySelectorAll(".app-panel"));
+const tabButtons = Array.from(document.querySelectorAll(".bottom-tabs__button"));
 
 let runners = loadRunners();
 let runs = loadRuns();
 let toastTimer;
 
 setDefaultDates();
-setupAccordion();
+setupBottomTabs();
 setupCrossTabSync();
 renderAll();
 
@@ -568,36 +569,87 @@ function renderAll() {
   renderDashboard();
 }
 
-function setupAccordion() {
-  if (!accordionPanels.length) {
+function setupBottomTabs() {
+  if (!appPanels.length || !tabButtons.length) {
     return;
   }
 
-  let hasOpenPanel = false;
-  accordionPanels.forEach((panel, index) => {
-    if (panel.open && !hasOpenPanel) {
-      hasOpenPanel = true;
-    } else {
-      panel.open = false;
+  const panelMap = new Map(appPanels.map((panel) => [panel.dataset.panel, panel]));
+
+  const setActivePanel = (panelKey) => {
+    if (!panelMap.has(panelKey)) {
+      return;
     }
 
-    if (!hasOpenPanel && index === 0) {
-      panel.open = true;
-      hasOpenPanel = true;
+    appPanels.forEach((panel) => {
+      const isActive = panel.dataset.panel === panelKey;
+      panel.classList.toggle("is-active", isActive);
+      panel.hidden = !isActive;
+    });
+
+    tabButtons.forEach((button) => {
+      const isActive = button.dataset.panelTarget === panelKey;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-selected", String(isActive));
+      button.tabIndex = isActive ? 0 : -1;
+    });
+  };
+
+  const moveTabFocus = (currentIndex, direction) => {
+    if (!tabButtons.length) {
+      return;
     }
 
-    panel.addEventListener("toggle", () => {
-      if (!panel.open) {
+    const nextIndex = (currentIndex + direction + tabButtons.length) % tabButtons.length;
+    const nextButton = tabButtons[nextIndex];
+    nextButton.focus();
+    setActivePanel(nextButton.dataset.panelTarget || "");
+  };
+
+  tabButtons.forEach((button, index) => {
+    button.addEventListener("click", () => {
+      setActivePanel(button.dataset.panelTarget || "");
+    });
+
+    button.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        moveTabFocus(index, 1);
         return;
       }
 
-      accordionPanels.forEach((otherPanel) => {
-        if (otherPanel !== panel) {
-          otherPanel.open = false;
-        }
-      });
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        moveTabFocus(index, -1);
+        return;
+      }
+
+      if (event.key === "Home") {
+        event.preventDefault();
+        tabButtons[0].focus();
+        setActivePanel(tabButtons[0].dataset.panelTarget || "");
+        return;
+      }
+
+      if (event.key === "End") {
+        event.preventDefault();
+        const lastButton = tabButtons[tabButtons.length - 1];
+        lastButton.focus();
+        setActivePanel(lastButton.dataset.panelTarget || "");
+        return;
+      }
+
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        setActivePanel(button.dataset.panelTarget || "");
+      }
     });
   });
+
+  const defaultButton = tabButtons.find((button) => button.classList.contains("is-active")) || tabButtons[0];
+  if (defaultButton) {
+    setActivePanel(defaultButton.dataset.panelTarget || "");
+  }
 }
 
 function setupCrossTabSync() {

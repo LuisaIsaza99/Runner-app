@@ -16,12 +16,17 @@
   </header>
 
   <main class="layout">
-    <details class="panel accordion" id="runners" open>
-      <summary class="accordion__summary">
+    <section
+      class="panel app-panel is-active"
+      id="panel-runners"
+      data-panel="runners"
+      role="tabpanel"
+      aria-labelledby="tab-runners"
+    >
+      <header class="panel__header">
         <h2>Runners</h2>
-        <span class="accordion__hint">Open / Close</span>
-      </summary>
-      <div class="accordion__content">
+      </header>
+      <div class="panel__content">
         <p class="panel__intro">
           Add runner name, optional photo (or default icon), and the date they joined the club.
         </p>
@@ -50,14 +55,20 @@
         <div id="runner-empty" class="empty-state">No runners yet. Add the first member.</div>
         <ul id="runner-list" class="runner-list" hidden></ul>
       </div>
-    </details>
+    </section>
 
-    <details class="panel accordion" id="runs">
-      <summary class="accordion__summary">
+    <section
+      class="panel app-panel"
+      id="panel-runs"
+      data-panel="runs"
+      role="tabpanel"
+      aria-labelledby="tab-runs"
+      hidden
+    >
+      <header class="panel__header">
         <h2>Runs</h2>
-        <span class="accordion__hint">Open / Close</span>
-      </summary>
-      <div class="accordion__content">
+      </header>
+      <div class="panel__content">
         <p class="panel__intro">
           Select a runner and save run time (hours, minutes, seconds) plus kilometres (supports decimals).
         </p>
@@ -112,14 +123,20 @@
           </table>
         </div>
       </div>
-    </details>
+    </section>
 
-    <details class="panel accordion" id="dashboard">
-      <summary class="accordion__summary">
+    <section
+      class="panel app-panel"
+      id="panel-dashboard"
+      data-panel="dashboard"
+      role="tabpanel"
+      aria-labelledby="tab-dashboard"
+      hidden
+    >
+      <header class="panel__header">
         <h2>Dashboard</h2>
-        <span class="accordion__hint">Open / Close</span>
-      </summary>
-      <div class="accordion__content">
+      </header>
+      <div class="panel__content">
         <p class="panel__intro">Live club performance summary and comparison bars.</p>
 
         <div class="stats-grid">
@@ -159,8 +176,46 @@
           <div id="contribution-legend" class="contribution-legend"></div>
         </div>
       </div>
-    </details>
+    </section>
   </main>
+
+  <nav class="bottom-tabs" aria-label="App panels" role="tablist">
+    <button
+      id="tab-runners"
+      class="bottom-tabs__button is-active"
+      type="button"
+      data-panel-target="runners"
+      role="tab"
+      aria-selected="true"
+      aria-controls="panel-runners"
+    >
+      <span class="bottom-tabs__label">Runners</span>
+    </button>
+    <button
+      id="tab-runs"
+      class="bottom-tabs__button"
+      type="button"
+      data-panel-target="runs"
+      role="tab"
+      aria-selected="false"
+      aria-controls="panel-runs"
+      tabindex="-1"
+    >
+      <span class="bottom-tabs__label">Runs</span>
+    </button>
+    <button
+      id="tab-dashboard"
+      class="bottom-tabs__button"
+      type="button"
+      data-panel-target="dashboard"
+      role="tab"
+      aria-selected="false"
+      aria-controls="panel-dashboard"
+      tabindex="-1"
+    >
+      <span class="bottom-tabs__label">Dashboard</span>
+    </button>
+  </nav>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="app.js"></script>
