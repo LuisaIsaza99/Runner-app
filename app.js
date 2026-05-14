@@ -1,21 +1,27 @@
 const RUNNERS_KEY = "tropi-runners-club:runners";
 const RUNS_KEY = "tropi-runners-club:runs";
-const TEAM_GOAL_KM = 100;
+const BAR_COLORS = ["#0ea5e9", "#14b8a6", "#6366f1", "#f59e0b", "#ef4444", "#10b981", "#8b5cf6", "#06b6d4"];
 
 const runnerForm = document.querySelector("#runner-form");
+const runnerEditIdInput = document.querySelector("#runner-edit-id");
 const runnerNameInput = document.querySelector("#runner-name");
 const runnerJoinDateInput = document.querySelector("#runner-join-date");
 const runnerPhotoInput = document.querySelector("#runner-photo");
+const runnerSubmitButton = document.querySelector("#runner-submit");
+const runnerCancelButton = document.querySelector("#runner-cancel");
 const runnerList = document.querySelector("#runner-list");
 const runnerEmpty = document.querySelector("#runner-empty");
 
 const runForm = document.querySelector("#run-form");
+const runEditIdInput = document.querySelector("#run-edit-id");
 const runRunnerSelect = document.querySelector("#run-runner");
 const runDateInput = document.querySelector("#run-date");
 const runHoursInput = document.querySelector("#run-hours");
 const runMinutesInput = document.querySelector("#run-minutes");
 const runSecondsInput = document.querySelector("#run-seconds");
 const runKilometresInput = document.querySelector("#run-kilometres");
+const runSubmitButton = document.querySelector("#run-submit");
+const runCancelButton = document.querySelector("#run-cancel");
 const runEmpty = document.querySelector("#run-empty");
 const runTableWrap = document.querySelector("#run-table-wrap");
 const runTableBody = document.querySelector("#run-table-body");
@@ -23,8 +29,11 @@ const runTableBody = document.querySelector("#run-table-body");
 const teamKmOutput = document.querySelector("#team-km");
 const teamRunsOutput = document.querySelector("#team-runs");
 const teamPaceOutput = document.querySelector("#team-pace");
+const teamTimeOutput = document.querySelector("#team-time");
 const runnerBars = document.querySelector("#runner-bars");
-const teamBarWrap = document.querySelector("#team-bar-wrap");
+const speedBars = document.querySelector("#speed-bars");
+const contributionBar = document.querySelector("#contribution-bar");
+const contributionLegend = document.querySelector("#contribution-legend");
 const toast = document.querySelector("#toast");
 
 let runners = loadRunners();
@@ -38,12 +47,17 @@ runnerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const runnerName = runnerNameInput.value.trim();
+  const editId = runnerEditIdInput.value;
+
   if (!runnerName || !runnerJoinDateInput.value) {
     showToast("Runner name and join date are required.");
     return;
   }
 
-  let photoData = null;
+  let photoData = editId
+    ? (runners.find((runner) => runner.id === editId)?.photoData || null)
+    : null;
+
   const photoFile = runnerPhotoInput.files[0];
 
   if (photoFile) {
@@ -57,18 +71,22 @@ runnerForm.addEventListener("submit", async (event) => {
   }
 
   const runner = {
-    id: createId("runner"),
+    id: editId || createId("runner"),
     name: runnerName,
     joinDate: runnerJoinDateInput.value,
     photoData
   };
 
-  runners.push(runner);
+  if (editId) {
+    runners = runners.map((item) => item.id === editId ? runner : item);
+  } else {
+    runners.push(runner);
+  }
+
   saveRunners();
   renderAll();
-  runnerForm.reset();
-  runnerJoinDateInput.value = toDateInputValue(new Date());
-  showToast("Runner added to Tropi Runners Club.");
+  resetRunnerForm();
+  showToast(editId ? "Runner updated." : "Runner added to Tropi Runners Club.");
 });
 
 runForm.addEventListener("submit", (event) => {
@@ -85,6 +103,7 @@ runForm.addEventListener("submit", (event) => {
   const minutes = Number(runMinutesInput.value);
   const seconds = Number(runSecondsInput.value);
   const kilometres = Number(runKilometresInput.value);
+  const editId = runEditIdInput.value;
   const durationSeconds = (hours * 3600) + (minutes * 60) + seconds;
 
   if (!runnerId || !date || kilometres <= 0 || durationSeconds <= 0) {
@@ -93,30 +112,114 @@ runForm.addEventListener("submit", (event) => {
   }
 
   const run = {
-    id: createId("run"),
+    id: editId || createId("run"),
     runnerId,
     date,
     durationSeconds,
     kilometres
   };
 
-  runs.push(run);
+  if (editId) {
+    runs = runs.map((item) => item.id === editId ? run : item);
+  } else {
+    runs.push(run);
+  }
+
   saveRuns();
-  renderRuns();
-  renderDashboard();
-  runHoursInput.value = "0";
-  runMinutesInput.value = "0";
-  runSecondsInput.value = "0";
-  runKilometresInput.value = "";
-  showToast("Run logged.");
+  renderAll();
+  resetRunForm();
+  showToast(editId ? "Run updated." : "Run logged.");
 });
 
-function renderAll() {
-  renderRunnerList();
-  renderRunnerSelect();
-  renderRuns();
-  renderDashboard();
-}
+runnerCancelButton.addEventListener("click", () => {
+  resetRunnerForm();
+  showToast("Runner edit cancelled.");
+});
+
+runCancelButton.addEventListener("click", () => {
+  resetRunForm();
+  showToast("Run edit cancelled.");
+});
+
+runnerList.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-action]");
+  if (!button) {
+    return;
+  }
+
+  const runnerId = button.dataset.id;
+  const action = button.dataset.action;
+  const runner = runners.find((item) => item.id === runnerId);
+
+  if (!runner) {
+    return;
+  }
+
+  if (action === "edit") {
+    startRunnerEdit(runner);
+    showToast("Editing runner.");
+    return;
+  }
+
+  if (action === "delete") {
+    const relatedRuns = runs.filter((run) => run.runnerId === runnerId).length;
+    const confirmed = window.confirm(
+      `Delete ${runner.name}? This will also delete ${relatedRuns} run(s).`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    runners = runners.filter((item) => item.id !== runnerId);
+    runs = runs.filter((run) => run.runnerId !== runnerId);
+    saveRunners();
+    saveRuns();
+
+    if (runnerEditIdInput.value === runnerId) {
+      resetRunnerForm();
+    }
+
+    if (runRunnerSelect.value === runnerId) {
+      resetRunForm();
+    }
+
+    renderAll();
+    showToast("Runner deleted.");
+  }
+});
+
+runTableBody.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-action]");
+  if (!button) {
+    return;
+  }
+
+  const runId = button.dataset.id;
+  const action = button.dataset.action;
+  const run = runs.find((item) => item.id === runId);
+
+  if (!run) {
+    return;
+  }
+
+  if (action === "edit") {
+    startRunEdit(run);
+    showToast("Editing run entry.");
+    return;
+  }
+
+  if (action === "delete") {
+    runs = runs.filter((item) => item.id !== runId);
+    saveRuns();
+
+    if (runEditIdInput.value === runId) {
+      resetRunForm();
+    }
+
+    renderAll();
+    showToast("Run deleted.");
+  }
+});
 
 function renderRunnerList() {
   runnerList.replaceChildren();
@@ -132,15 +235,34 @@ function renderRunnerList() {
 
       const avatar = createAvatar(runner);
       const content = document.createElement("div");
+      content.className = "runner-main";
+
       const title = document.createElement("h3");
       const meta = document.createElement("p");
+      const actions = document.createElement("div");
+      const editButton = document.createElement("button");
+      const deleteButton = document.createElement("button");
 
       title.textContent = runner.name;
       meta.className = "runner-meta";
       meta.textContent = `Joined ${formatDate(runner.joinDate)}`;
 
+      actions.className = "runner-actions";
+      editButton.className = "button button--secondary button--small";
+      editButton.type = "button";
+      editButton.dataset.action = "edit";
+      editButton.dataset.id = runner.id;
+      editButton.textContent = "Edit";
+
+      deleteButton.className = "button button--danger button--small";
+      deleteButton.type = "button";
+      deleteButton.dataset.action = "delete";
+      deleteButton.dataset.id = runner.id;
+      deleteButton.textContent = "Delete";
+
+      actions.append(editButton, deleteButton);
       content.append(title, meta);
-      item.append(avatar, content);
+      item.append(avatar, content, actions);
       runnerList.append(item);
     });
 }
@@ -211,7 +333,8 @@ function renderRuns() {
       createCell(formatDate(run.date)),
       createCell(formatDuration(run.durationSeconds)),
       createCell(`${formatNumber(run.kilometres)} km`),
-      createCell(`${formatPace(pace)} /km`)
+      createCell(`${formatPace(pace)} /km`),
+      createRunActionsCell(run.id)
     );
 
     runTableBody.append(row);
@@ -225,23 +348,30 @@ function renderDashboard() {
 
   teamKmOutput.textContent = `${totalKm.toFixed(2)} km`;
   teamRunsOutput.textContent = String(safeRuns.length);
+  teamTimeOutput.textContent = formatDuration(totalDurationSeconds);
   teamPaceOutput.textContent = totalKm > 0
     ? `${formatPace(totalDurationSeconds / totalKm)} /km`
     : "--:-- /km";
 
   const summaryByRunner = runners.map((runner) => {
     const runnerRuns = safeRuns.filter((run) => run.runnerId === runner.id);
+    const runnerTime = runnerRuns.reduce((sum, run) => sum + run.durationSeconds, 0);
+    const speedKmh = runnerTime > 0 ? (runnerRuns.reduce((sum, run) => sum + run.kilometres, 0) / (runnerTime / 3600)) : 0;
+
     return {
       id: runner.id,
       name: runner.name,
       totalKm: runnerRuns.reduce((sum, run) => sum + run.kilometres, 0),
-      runsCount: runnerRuns.length
+      runsCount: runnerRuns.length,
+      speedKmh,
+      contribution: totalKm > 0 ? (runnerRuns.reduce((sum, run) => sum + run.kilometres, 0) / totalKm) * 100 : 0
     };
   });
 
   summaryByRunner.sort((first, second) => second.totalKm - first.totalKm);
   renderRunnerBars(summaryByRunner);
-  renderTeamBar(totalKm);
+  renderSpeedBars(summaryByRunner);
+  renderContribution(summaryByRunner);
 }
 
 function renderRunnerBars(summaryByRunner) {
@@ -281,39 +411,80 @@ function renderRunnerBars(summaryByRunner) {
   });
 }
 
-function renderTeamBar(totalKm) {
-  teamBarWrap.replaceChildren();
+function renderSpeedBars(summaryByRunner) {
+  speedBars.replaceChildren();
+  const maxSpeed = Math.max(1, ...summaryByRunner.map((item) => item.speedKmh));
 
-  const row = document.createElement("div");
-  row.className = "bar-row";
+  const activeRunners = summaryByRunner.filter((item) => item.runsCount > 0);
+  if (!activeRunners.length) {
+    speedBars.append(createNote("No speed data yet. Add runs to compare speed."));
+    return;
+  }
 
-  const label = document.createElement("div");
-  label.className = "bar-label";
+  activeRunners
+    .slice()
+    .sort((first, second) => second.speedKmh - first.speedKmh)
+    .forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "bar-row";
 
-  const title = document.createElement("strong");
-  title.textContent = "Team progress";
+      const label = document.createElement("div");
+      label.className = "bar-label";
 
-  const value = document.createElement("span");
-  value.textContent = `${totalKm.toFixed(2)} / ${TEAM_GOAL_KM} km`;
+      const name = document.createElement("strong");
+      name.textContent = item.name;
 
-  label.append(title, value);
+      const value = document.createElement("span");
+      value.textContent = `${item.speedKmh.toFixed(2)} km/h`;
 
-  const track = document.createElement("div");
-  track.className = "bar-track";
+      label.append(name, value);
 
-  const fill = document.createElement("div");
-  fill.className = "bar-fill";
-  fill.style.width = `${Math.min(100, (totalKm / TEAM_GOAL_KM) * 100)}%`;
-  track.append(fill);
+      const track = document.createElement("div");
+      track.className = "bar-track";
 
-  const note = createNote(
-    totalKm >= TEAM_GOAL_KM
-      ? "Goal reached! Team is performing above target."
-      : `${(TEAM_GOAL_KM - totalKm).toFixed(2)} km left to reach team goal.`
-  );
+      const fill = document.createElement("div");
+      fill.className = "bar-fill";
+      fill.style.width = `${(item.speedKmh / maxSpeed) * 100}%`;
 
-  row.append(label, track);
-  teamBarWrap.append(row, note);
+      track.append(fill);
+      row.append(label, track);
+      speedBars.append(row);
+    });
+}
+
+function renderContribution(summaryByRunner) {
+  contributionBar.replaceChildren();
+  contributionLegend.replaceChildren();
+
+  const activeRunners = summaryByRunner.filter((item) => item.totalKm > 0);
+  if (!activeRunners.length) {
+    contributionLegend.append(createNote("No contribution split yet. Log runs first."));
+    return;
+  }
+
+  activeRunners.forEach((item, index) => {
+    const color = BAR_COLORS[index % BAR_COLORS.length];
+
+    const segment = document.createElement("div");
+    segment.className = "contribution-segment";
+    segment.style.width = `${item.contribution}%`;
+    segment.style.background = color;
+    segment.title = `${item.name}: ${item.contribution.toFixed(1)}%`;
+    contributionBar.append(segment);
+
+    const legendItem = document.createElement("div");
+    legendItem.className = "legend-item";
+
+    const dot = document.createElement("span");
+    dot.className = "legend-dot";
+    dot.style.background = color;
+
+    const text = document.createElement("span");
+    text.textContent = `${item.name} - ${item.totalKm.toFixed(2)} km (${item.contribution.toFixed(1)}%)`;
+
+    legendItem.append(dot, text);
+    contributionLegend.append(legendItem);
+  });
 }
 
 function createCell(text) {
@@ -329,10 +500,86 @@ function createNote(text) {
   return note;
 }
 
+function createRunActionsCell(runId) {
+  const cell = document.createElement("td");
+  const wrap = document.createElement("div");
+  const editButton = document.createElement("button");
+  const deleteButton = document.createElement("button");
+
+  wrap.className = "table-actions";
+
+  editButton.className = "button button--secondary button--small";
+  editButton.type = "button";
+  editButton.dataset.action = "edit";
+  editButton.dataset.id = runId;
+  editButton.textContent = "Edit";
+
+  deleteButton.className = "button button--danger button--small";
+  deleteButton.type = "button";
+  deleteButton.dataset.action = "delete";
+  deleteButton.dataset.id = runId;
+  deleteButton.textContent = "Delete";
+
+  wrap.append(editButton, deleteButton);
+  cell.append(wrap);
+  return cell;
+}
+
 function setDefaultDates() {
   const today = toDateInputValue(new Date());
   runnerJoinDateInput.value = today;
   runDateInput.value = today;
+}
+
+function renderAll() {
+  renderRunnerList();
+  renderRunnerSelect();
+  renderRuns();
+  renderDashboard();
+}
+
+function startRunnerEdit(runner) {
+  runnerEditIdInput.value = runner.id;
+  runnerNameInput.value = runner.name;
+  runnerJoinDateInput.value = runner.joinDate;
+  runnerPhotoInput.value = "";
+  runnerSubmitButton.textContent = "Update runner";
+  runnerCancelButton.hidden = false;
+}
+
+function resetRunnerForm() {
+  runnerForm.reset();
+  runnerEditIdInput.value = "";
+  runnerSubmitButton.textContent = "Add runner";
+  runnerCancelButton.hidden = true;
+  runnerJoinDateInput.value = toDateInputValue(new Date());
+}
+
+function startRunEdit(run) {
+  const hours = Math.floor(run.durationSeconds / 3600);
+  const minutes = Math.floor((run.durationSeconds % 3600) / 60);
+  const seconds = run.durationSeconds % 60;
+
+  runEditIdInput.value = run.id;
+  runRunnerSelect.value = run.runnerId;
+  runDateInput.value = run.date;
+  runHoursInput.value = String(hours);
+  runMinutesInput.value = String(minutes);
+  runSecondsInput.value = String(seconds);
+  runKilometresInput.value = String(run.kilometres);
+  runSubmitButton.textContent = "Update run";
+  runCancelButton.hidden = false;
+}
+
+function resetRunForm() {
+  runForm.reset();
+  runEditIdInput.value = "";
+  runSubmitButton.textContent = "Log run";
+  runCancelButton.hidden = true;
+  runHoursInput.value = "0";
+  runMinutesInput.value = "0";
+  runSecondsInput.value = "0";
+  runDateInput.value = toDateInputValue(new Date());
 }
 
 function loadRunners() {
