@@ -3,1059 +3,130 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tropi Runner Tracker</title>
-  <style>
-    :root {
-      --jungle: #004d40;
-      --jungle-soft: #00796b;
-      --ocean: #00acc1;
-      --ocean-deep: #0077b6;
-      --coral: #ff7043;
-      --sand: #fdf5e6;
-      --banana: #ffe082;
-      --ink: #1f2933;
-      --muted: #60717c;
-      --surface: rgba(255, 255, 255, 0.92);
-      --line: rgba(0, 77, 64, 0.14);
-      --shadow: 0 18px 45px rgba(0, 77, 64, 0.16);
-      --radius: 24px;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      min-height: 100vh;
-      margin: 0;
-      color: var(--ink);
-      font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(255, 224, 130, 0.58), transparent 34rem),
-        radial-gradient(circle at 90% 20%, rgba(0, 172, 193, 0.32), transparent 28rem),
-        linear-gradient(160deg, #ecfff7 0%, #fdf5e6 45%, #e4f7ff 100%);
-    }
-
-    body::before {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      pointer-events: none;
-      content: "";
-      background-image:
-        linear-gradient(115deg, rgba(0, 77, 64, 0.05) 0 1px, transparent 1px 100%),
-        linear-gradient(25deg, rgba(255, 112, 67, 0.06) 0 1px, transparent 1px 100%);
-      background-size: 48px 48px;
-      mask-image: linear-gradient(to bottom, black, transparent 85%);
-    }
-
-    button,
-    input {
-      font: inherit;
-    }
-
-    button {
-      border: 0;
-      cursor: pointer;
-    }
-
-    .hero {
-      position: relative;
-      overflow: hidden;
-      padding: 3.5rem 1rem 6.5rem;
-      color: #ffffff;
-      background:
-        linear-gradient(135deg, rgba(0, 77, 64, 0.96), rgba(0, 121, 107, 0.9)),
-        url("data:image/svg+xml,%3Csvg width='220' height='180' viewBox='0 0 220 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.18' stroke-width='7' stroke-linecap='round'%3E%3Cpath d='M35 170C30 101 57 46 117 11'/%3E%3Cpath d='M71 95c-30-37-57-51-83-42'/%3E%3Cpath d='M80 76c-2-40 10-67 37-82'/%3E%3Cpath d='M94 60c35-28 72-37 111-26'/%3E%3Cpath d='M108 79c40-6 74 3 103 28'/%3E%3Cpath d='M114 101c35 13 59 35 72 67'/%3E%3C/g%3E%3C/svg%3E");
-      background-position: center;
-      background-size: cover, 360px;
-    }
-
-    .hero::after {
-      position: absolute;
-      right: -8rem;
-      bottom: -11rem;
-      width: 28rem;
-      height: 28rem;
-      content: "";
-      background: radial-gradient(circle, rgba(255, 224, 130, 0.54), rgba(255, 112, 67, 0.08) 58%, transparent 62%);
-      border-radius: 50%;
-    }
-
-    .hero__content {
-      position: relative;
-      z-index: 1;
-      max-width: 1120px;
-      margin: 0 auto;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 0.8rem;
-      margin: 0 0 1rem;
-      color: #fff7d6;
-      font-size: 0.82rem;
-      font-weight: 800;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      background: rgba(255, 255, 255, 0.14);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 999px;
-    }
-
-    h1,
-    h2,
-    h3,
-    p {
-      margin-top: 0;
-    }
-
-    h1 {
-      max-width: 760px;
-      margin-bottom: 1rem;
-      font-size: clamp(2.4rem, 6vw, 5.5rem);
-      line-height: 0.95;
-      letter-spacing: -0.065em;
-    }
-
-    .hero p {
-      max-width: 640px;
-      margin-bottom: 1.75rem;
-      color: rgba(255, 255, 255, 0.86);
-      font-size: clamp(1rem, 2vw, 1.25rem);
-      line-height: 1.6;
-    }
-
-    .hero__actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-    }
-
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 48px;
-      padding: 0.85rem 1.1rem;
-      font-weight: 800;
-      color: var(--jungle);
-      text-decoration: none;
-      background: var(--banana);
-      border-radius: 999px;
-      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16);
-      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
-    }
-
-    .button:hover,
-    .button:focus-visible {
-      transform: translateY(-2px);
-      background: #fff0a8;
-      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.18);
-    }
-
-    .button--ghost {
-      color: #ffffff;
-      background: rgba(255, 255, 255, 0.14);
-      border: 1px solid rgba(255, 255, 255, 0.26);
-      box-shadow: none;
-    }
-
-    .button--ghost:hover,
-    .button--ghost:focus-visible {
-      background: rgba(255, 255, 255, 0.22);
-      box-shadow: none;
-    }
-
-    .app {
-      width: min(1120px, calc(100% - 2rem));
-      margin: -3.5rem auto 3rem;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .card,
-    .panel {
-      background: var(--surface);
-      border: 1px solid rgba(255, 255, 255, 0.76);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-    }
-
-    .stat-card {
-      position: relative;
-      overflow: hidden;
-      min-height: 145px;
-      padding: 1.25rem;
-    }
-
-    .stat-card::after {
-      position: absolute;
-      right: -2.4rem;
-      bottom: -2.6rem;
-      width: 8rem;
-      height: 8rem;
-      content: "";
-      background: radial-gradient(circle, rgba(255, 112, 67, 0.24), transparent 68%);
-      border-radius: 50%;
-    }
-
-    .stat-card h2 {
-      margin-bottom: 1.2rem;
-      color: var(--muted);
-      font-size: 0.78rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-    }
-
-    .stat-value {
-      margin: 0;
-      color: var(--jungle);
-      font-size: clamp(1.8rem, 4vw, 2.7rem);
-      font-weight: 900;
-      letter-spacing: -0.055em;
-    }
-
-    .stat-caption {
-      margin: 0.3rem 0 0;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .workspace {
-      display: grid;
-      grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.45fr);
-      gap: 1rem;
-      align-items: start;
-    }
-
-    .panel {
-      padding: clamp(1.15rem, 2vw, 1.5rem);
-    }
-
-    .panel h2 {
-      margin-bottom: 0.35rem;
-      color: var(--jungle);
-      font-size: 1.35rem;
-      letter-spacing: -0.025em;
-    }
-
-    .panel__intro {
-      margin-bottom: 1.2rem;
-      color: var(--muted);
-      line-height: 1.55;
-    }
-
-    form {
-      display: grid;
-      gap: 1rem;
-    }
-
-    label {
-      display: grid;
-      gap: 0.4rem;
-      color: var(--jungle);
-      font-size: 0.86rem;
-      font-weight: 800;
-    }
-
-    input {
-      width: 100%;
-      min-height: 48px;
-      padding: 0.75rem 0.85rem;
-      color: var(--ink);
-      background: #ffffff;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      outline: 0;
-      transition: border-color 140ms ease, box-shadow 140ms ease;
-    }
-
-    input:focus {
-      border-color: var(--ocean);
-      box-shadow: 0 0 0 4px rgba(0, 172, 193, 0.16);
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.85rem;
-    }
-
-    .form-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-top: 0.3rem;
-    }
-
-    .primary-action,
-    .secondary-action,
-    .danger-action,
-    .link-action {
-      min-height: 46px;
-      padding: 0.75rem 1rem;
-      font-weight: 850;
-      border-radius: 14px;
-      transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
-    }
-
-    .primary-action {
-      color: #ffffff;
-      background: linear-gradient(135deg, var(--jungle-soft), var(--ocean-deep));
-      box-shadow: 0 14px 28px rgba(0, 119, 182, 0.2);
-    }
-
-    .primary-action:hover,
-    .primary-action:focus-visible,
-    .secondary-action:hover,
-    .secondary-action:focus-visible,
-    .danger-action:hover,
-    .danger-action:focus-visible {
-      transform: translateY(-1px);
-    }
-
-    .secondary-action {
-      color: var(--jungle);
-      background: #e4fbf4;
-      border: 1px solid rgba(0, 77, 64, 0.12);
-    }
-
-    .danger-action {
-      color: #8f2e18;
-      background: #fff0ea;
-      border: 1px solid rgba(255, 112, 67, 0.22);
-    }
-
-    .link-action {
-      min-height: auto;
-      padding: 0.45rem 0.55rem;
-      color: var(--ocean-deep);
-      background: transparent;
-      border-radius: 10px;
-    }
-
-    .link-action:hover,
-    .link-action:focus-visible {
-      color: var(--jungle);
-      background: rgba(0, 172, 193, 0.1);
-    }
-
-    .chart-card {
-      margin-bottom: 1rem;
-    }
-
-    .chart-header,
-    .table-header {
-      display: flex;
-      gap: 1rem;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 0.5rem;
-    }
-
-    .chart-wrap {
-      position: relative;
-      height: 320px;
-      margin-top: 1rem;
-      overflow: hidden;
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.46)),
-        repeating-linear-gradient(to top, transparent 0 63px, rgba(0, 77, 64, 0.07) 64px);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-    }
-
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
-
-    .history-tools {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      justify-content: flex-end;
-    }
-
-    .table-scroll {
-      overflow-x: auto;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-    }
-
-    table {
-      width: 100%;
-      min-width: 690px;
-      border-collapse: collapse;
-      background: rgba(255, 255, 255, 0.82);
-    }
-
-    th,
-    td {
-      padding: 0.95rem;
-      text-align: left;
-      border-bottom: 1px solid rgba(0, 77, 64, 0.1);
-    }
-
-    th {
-      color: var(--jungle);
-      font-size: 0.78rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      background: rgba(0, 121, 107, 0.07);
-    }
-
-    tbody tr:last-child td {
-      border-bottom: 0;
-    }
-
-    tbody tr:hover {
-      background: rgba(255, 224, 130, 0.16);
-    }
-
-    .actions-cell {
-      display: flex;
-      gap: 0.35rem;
-      white-space: nowrap;
-    }
-
-    .empty-state {
-      padding: 2rem;
-      color: var(--muted);
-      text-align: center;
-      background: rgba(255, 255, 255, 0.7);
-      border: 1px dashed rgba(0, 77, 64, 0.24);
-      border-radius: 18px;
-    }
-
-    .toast {
-      position: fixed;
-      right: 1rem;
-      bottom: 1rem;
-      z-index: 10;
-      max-width: min(360px, calc(100vw - 2rem));
-      padding: 0.9rem 1rem;
-      color: #ffffff;
-      background: rgba(0, 77, 64, 0.94);
-      border-radius: 16px;
-      box-shadow: 0 20px 40px rgba(0, 77, 64, 0.28);
-      transform: translateY(150%);
-      transition: transform 180ms ease;
-    }
-
-    .toast.is-visible {
-      transform: translateY(0);
-    }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    @media (max-width: 920px) {
-      .stats-grid,
-      .workspace {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .workspace > .panel:first-child {
-        grid-column: 1 / -1;
-      }
-    }
-
-    @media (max-width: 680px) {
-      .hero {
-        padding-top: 2.4rem;
-      }
-
-      .stats-grid,
-      .workspace,
-      .form-row {
-        grid-template-columns: 1fr;
-      }
-
-      .chart-header,
-      .table-header {
-        display: block;
-      }
-
-      .history-tools {
-        justify-content: flex-start;
-        margin-top: 0.8rem;
-      }
-    }
-  </style>
+  <title>Tropi Runners Club</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="hero">
-    <div class="hero__content">
-      <p class="eyebrow">Tropical training dashboard</p>
-      <h1>Tropi Runner Tracker</h1>
-      <p>Log every run, watch your island miles add up, and keep your pace moving in the right direction from one shareable static page.</p>
-      <div class="hero__actions">
-        <a class="button" href="#log-run">Log a run</a>
-        <a class="button button--ghost" href="#history">View history</a>
-      </div>
-    </div>
+    <p class="hero__tag">Runner management app</p>
+    <h1>Tropi Runners Club</h1>
+    <p class="hero__subtitle">
+      Register runners, log runs, and monitor how every person and the full team are performing.
+    </p>
   </header>
 
-  <main class="app">
-    <section class="stats-grid" aria-label="Running summary">
-      <article class="card stat-card">
-        <h2>Total distance</h2>
-        <p class="stat-value"><span id="total-distance">0.0</span> km</p>
-        <p class="stat-caption">All logged runs</p>
-      </article>
-      <article class="card stat-card">
-        <h2>Total runs</h2>
-        <p class="stat-value" id="total-runs">0</p>
-        <p class="stat-caption">Sessions captured</p>
-      </article>
-      <article class="card stat-card">
-        <h2>Average pace</h2>
-        <p class="stat-value" id="average-pace">--:--</p>
-        <p class="stat-caption">Minutes per km</p>
-      </article>
-      <article class="card stat-card">
-        <h2>Runs this week</h2>
-        <p class="stat-value" id="runs-this-week">0</p>
-        <p class="stat-caption">Monday to Sunday</p>
-      </article>
+  <main class="layout">
+    <section class="panel" id="runners" aria-labelledby="runners-title">
+      <h2 id="runners-title">Runners</h2>
+      <p class="panel__intro">
+        Add runner name, optional photo (or default icon), and the date they joined the club.
+      </p>
+      <form id="runner-form" class="form-grid">
+        <label for="runner-name">
+          Runner name
+          <input id="runner-name" type="text" maxlength="60" placeholder="Ex: Maria Soto" required>
+        </label>
+        <div class="form-row">
+          <label for="runner-join-date">
+            Join date
+            <input id="runner-join-date" type="date" required>
+          </label>
+          <label for="runner-photo">
+            Photo (optional)
+            <input id="runner-photo" type="file" accept="image/*">
+          </label>
+        </div>
+        <button class="button button--primary" type="submit">Add runner</button>
+      </form>
+
+      <div id="runner-empty" class="empty-state">No runners yet. Add the first member.</div>
+      <ul id="runner-list" class="runner-list" hidden></ul>
     </section>
 
-    <section class="workspace">
-      <aside class="panel" id="log-run" aria-labelledby="form-heading">
-        <h2 id="form-heading">Log a new run</h2>
-        <p class="panel__intro">Add distance, duration, and optional heart rate. Your data stays in this browser with localStorage.</p>
-
-        <form id="run-form">
-          <input type="hidden" id="run-id">
-          <label for="run-date">
-            Date
-            <input type="date" id="run-date" required>
+    <section class="panel" id="runs" aria-labelledby="runs-title">
+      <h2 id="runs-title">Runs</h2>
+      <p class="panel__intro">
+        Select a runner and save run time (hours, minutes, seconds) plus kilometres (supports decimals).
+      </p>
+      <form id="run-form" class="form-grid">
+        <label for="run-runner">
+          Runner
+          <select id="run-runner" required></select>
+        </label>
+        <label for="run-date">
+          Run date
+          <input id="run-date" type="date" required>
+        </label>
+        <div class="form-row form-row--three">
+          <label for="run-hours">
+            Hours
+            <input id="run-hours" type="number" min="0" max="23" step="1" value="0" required>
           </label>
-          <div class="form-row">
-            <label for="run-distance">
-              Distance (km)
-              <input type="number" id="run-distance" min="0.01" step="0.01" placeholder="5.00" required>
-            </label>
-            <label for="run-duration">
-              Duration (minutes)
-              <input type="number" id="run-duration" min="1" step="1" placeholder="32" required>
-            </label>
-          </div>
-          <label for="run-heart-rate">
-            Average heart rate (optional)
-            <input type="number" id="run-heart-rate" min="30" max="240" step="1" placeholder="148">
+          <label for="run-minutes">
+            Minutes
+            <input id="run-minutes" type="number" min="0" max="59" step="1" value="0" required>
           </label>
-          <div class="form-actions">
-            <button class="primary-action" type="submit" id="submit-button">Add run</button>
-            <button class="secondary-action" type="button" id="reset-button">Clear</button>
-          </div>
-        </form>
-      </aside>
+          <label for="run-seconds">
+            Seconds
+            <input id="run-seconds" type="number" min="0" max="59" step="1" value="0" required>
+          </label>
+        </div>
+        <label for="run-kilometres">
+          Kilometres
+          <input id="run-kilometres" type="number" min="0.01" step="0.01" placeholder="5.25" required>
+        </label>
+        <button class="button button--primary" type="submit">Log run</button>
+      </form>
 
-      <section>
-        <article class="panel chart-card" aria-labelledby="chart-heading">
-          <div class="chart-header">
-            <div>
-              <h2 id="chart-heading">Distance over time</h2>
-              <p class="panel__intro">A quick visual of how your training volume trends across logged dates.</p>
-            </div>
-          </div>
-          <div class="chart-wrap">
-            <canvas id="distance-chart" aria-label="Line chart showing running distance over time" role="img"></canvas>
-          </div>
+      <div id="run-empty" class="empty-state">No runs logged yet.</div>
+      <div id="run-table-wrap" class="table-wrap" hidden>
+        <table>
+          <thead>
+            <tr>
+              <th>Runner</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Kilometres</th>
+              <th>Pace</th>
+            </tr>
+          </thead>
+          <tbody id="run-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel panel--dashboard" id="dashboard" aria-labelledby="dashboard-title">
+      <h2 id="dashboard-title">Dashboard</h2>
+      <p class="panel__intro">Bar view for individual and team performance.</p>
+
+      <div class="stats-grid">
+        <article class="stat-box">
+          <h3>Total team kilometres</h3>
+          <p id="team-km">0.00 km</p>
         </article>
-
-        <article class="panel" id="history" aria-labelledby="history-heading">
-          <div class="table-header">
-            <div>
-              <h2 id="history-heading">Recent activity</h2>
-              <p class="panel__intro">Edit entries when plans change, or delete runs you no longer want to track.</p>
-            </div>
-            <div class="history-tools">
-              <button class="secondary-action" type="button" id="sample-button">Add sample data</button>
-              <button class="danger-action" type="button" id="clear-button">Clear all</button>
-            </div>
-          </div>
-
-          <div id="empty-state" class="empty-state">
-            No runs logged yet. Add your first tropical training session to start the dashboard.
-          </div>
-
-          <div class="table-scroll" id="table-wrap" hidden>
-            <table>
-              <caption class="sr-only">Logged runs with pace and heart rate</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Date</th>
-                  <th scope="col">Distance</th>
-                  <th scope="col">Duration</th>
-                  <th scope="col">Pace</th>
-                  <th scope="col">Avg HR</th>
-                  <th scope="col">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="run-table-body"></tbody>
-            </table>
-          </div>
+        <article class="stat-box">
+          <h3>Total runs</h3>
+          <p id="team-runs">0</p>
         </article>
-      </section>
+        <article class="stat-box">
+          <h3>Average team pace</h3>
+          <p id="team-pace">--:-- /km</p>
+        </article>
+      </div>
+
+      <div class="dashboard-subsection">
+        <h3>Runner performance (by total kilometres)</h3>
+        <div id="runner-bars" class="bars-wrap"></div>
+      </div>
+
+      <div class="dashboard-subsection">
+        <h3>Whole team performance (goal: 100 km)</h3>
+        <div id="team-bar-wrap" class="team-bar-wrap"></div>
+      </div>
     </section>
   </main>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-  <script>
-    const STORAGE_KEY = "tropi-runner-tracker:runs";
-
-    const form = document.querySelector("#run-form");
-    const runIdInput = document.querySelector("#run-id");
-    const dateInput = document.querySelector("#run-date");
-    const distanceInput = document.querySelector("#run-distance");
-    const durationInput = document.querySelector("#run-duration");
-    const heartRateInput = document.querySelector("#run-heart-rate");
-    const submitButton = document.querySelector("#submit-button");
-    const resetButton = document.querySelector("#reset-button");
-    const tableBody = document.querySelector("#run-table-body");
-    const tableWrap = document.querySelector("#table-wrap");
-    const emptyState = document.querySelector("#empty-state");
-    const sampleButton = document.querySelector("#sample-button");
-    const clearButton = document.querySelector("#clear-button");
-    const toast = document.querySelector("#toast");
-    const chartCanvas = document.querySelector("#distance-chart");
-
-    let runs = loadRuns();
-    let toastTimer;
-
-    setDefaultDate();
-    render();
-
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-
-      const distance = Number(distanceInput.value);
-      const duration = Number(durationInput.value);
-      const heartRate = heartRateInput.value ? Number(heartRateInput.value) : null;
-
-      if (!dateInput.value || distance <= 0 || duration <= 0) {
-        showToast("Add a valid date, distance, and duration.");
-        return;
-      }
-
-      const existingRunId = runIdInput.value;
-      const nextRun = {
-        id: existingRunId || createRunId(),
-        date: dateInput.value,
-        distance,
-        duration,
-        heartRate
-      };
-
-      if (existingRunId) {
-        runs = runs.map((run) => run.id === existingRunId ? nextRun : run);
-        showToast("Run updated.");
-      } else {
-        runs = [...runs, nextRun];
-        showToast("Run added.");
-      }
-
-      saveRuns();
-      resetForm();
-      render();
-    });
-
-    resetButton.addEventListener("click", resetForm);
-
-    sampleButton.addEventListener("click", () => {
-      const today = new Date();
-      const samples = [
-        { daysAgo: 12, distance: 4.2, duration: 28, heartRate: 142 },
-        { daysAgo: 8, distance: 6.5, duration: 45, heartRate: 149 },
-        { daysAgo: 5, distance: 3.8, duration: 24, heartRate: 136 },
-        { daysAgo: 2, distance: 8.1, duration: 57, heartRate: 152 }
-      ].map((sample) => {
-        const date = new Date(today);
-        date.setDate(today.getDate() - sample.daysAgo);
-
-        return {
-          id: createRunId(),
-          date: toDateInputValue(date),
-          distance: sample.distance,
-          duration: sample.duration,
-          heartRate: sample.heartRate
-        };
-      });
-
-      runs = [...runs, ...samples];
-      saveRuns();
-      render();
-      showToast("Sample runs added.");
-    });
-
-    clearButton.addEventListener("click", () => {
-      if (!runs.length) {
-        showToast("There are no runs to clear.");
-        return;
-      }
-
-      const confirmed = window.confirm("Clear all logged runs?");
-      if (!confirmed) {
-        return;
-      }
-
-      runs = [];
-      saveRuns();
-      resetForm();
-      render();
-      showToast("All runs cleared.");
-    });
-
-    tableBody.addEventListener("click", (event) => {
-      const button = event.target.closest("button[data-action]");
-      if (!button) {
-        return;
-      }
-
-      const runId = button.dataset.id;
-      const run = runs.find((item) => item.id === runId);
-      if (!run) {
-        return;
-      }
-
-      if (button.dataset.action === "edit") {
-        startEditing(run);
-      }
-
-      if (button.dataset.action === "delete") {
-        runs = runs.filter((item) => item.id !== runId);
-        saveRuns();
-        render();
-        showToast("Run deleted.");
-      }
-    });
-
-    window.addEventListener("resize", () => {
-      drawChart(getSortedRuns());
-    });
-
-    function loadRuns() {
-      try {
-        const savedRuns = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-        if (!Array.isArray(savedRuns)) {
-          return [];
-        }
-
-        return savedRuns
-          .filter((run) => run && run.id && run.date && Number(run.distance) > 0 && Number(run.duration) > 0)
-          .map((run) => ({
-            id: String(run.id),
-            date: run.date,
-            distance: Number(run.distance),
-            duration: Number(run.duration),
-            heartRate: run.heartRate ? Number(run.heartRate) : null
-          }));
-      } catch (error) {
-        console.warn("Could not load saved runs.", error);
-        return [];
-      }
-    }
-
-    function saveRuns() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(runs));
-    }
-
-    function render() {
-      const sortedRuns = getSortedRuns();
-      renderStats(sortedRuns);
-      renderTable(sortedRuns);
-      drawChart(sortedRuns);
-    }
-
-    function renderStats(sortedRuns) {
-      const totalDistance = sortedRuns.reduce((total, run) => total + run.distance, 0);
-      const totalDuration = sortedRuns.reduce((total, run) => total + run.duration, 0);
-      const startOfWeek = getStartOfWeek(new Date());
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 7);
-
-      const runsThisWeek = sortedRuns.filter((run) => {
-        const date = parseLocalDate(run.date);
-        return date >= startOfWeek && date < endOfWeek;
-      }).length;
-
-      document.querySelector("#total-distance").textContent = totalDistance.toFixed(1);
-      document.querySelector("#total-runs").textContent = sortedRuns.length;
-      document.querySelector("#average-pace").textContent = totalDistance > 0 ? formatPace(totalDuration / totalDistance) : "--:--";
-      document.querySelector("#runs-this-week").textContent = runsThisWeek;
-    }
-
-    function renderTable(sortedRuns) {
-      tableBody.replaceChildren();
-      tableWrap.hidden = sortedRuns.length === 0;
-      emptyState.hidden = sortedRuns.length > 0;
-
-      sortedRuns
-        .slice()
-        .reverse()
-        .forEach((run) => {
-          const row = document.createElement("tr");
-
-          row.append(
-            createCell(formatDate(run.date)),
-            createCell(`${formatNumber(run.distance)} km`),
-            createCell(`${run.duration} min`),
-            createCell(`${formatPace(run.duration / run.distance)} /km`),
-            createCell(run.heartRate ? `${run.heartRate} bpm` : "-"),
-            createActionsCell(run.id)
-          );
-
-          tableBody.append(row);
-        });
-    }
-
-    function drawChart(sortedRuns) {
-      const context = chartCanvas.getContext("2d");
-      const rect = chartCanvas.getBoundingClientRect();
-      const pixelRatio = window.devicePixelRatio || 1;
-      const width = Math.max(320, Math.floor(rect.width));
-      const height = Math.max(240, Math.floor(rect.height));
-
-      chartCanvas.width = Math.floor(width * pixelRatio);
-      chartCanvas.height = Math.floor(height * pixelRatio);
-      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-      context.clearRect(0, 0, width, height);
-
-      const padding = { top: 28, right: 28, bottom: 54, left: 52 };
-      const chartWidth = width - padding.left - padding.right;
-      const chartHeight = height - padding.top - padding.bottom;
-
-      context.fillStyle = "#ffffff";
-      context.fillRect(0, 0, width, height);
-
-      if (!sortedRuns.length) {
-        context.fillStyle = "#60717c";
-        context.font = "700 18px Segoe UI, sans-serif";
-        context.textAlign = "center";
-        context.fillText("Log a run to draw your progress chart.", width / 2, height / 2);
-        return;
-      }
-
-      const maxDistance = Math.max(...sortedRuns.map((run) => run.distance), 1);
-      const yMax = Math.ceil(maxDistance + 1);
-      const points = sortedRuns.map((run, index) => {
-        const x = sortedRuns.length === 1
-          ? padding.left + chartWidth / 2
-          : padding.left + (index / (sortedRuns.length - 1)) * chartWidth;
-        const y = padding.top + chartHeight - (run.distance / yMax) * chartHeight;
-
-        return { x, y, run };
-      });
-
-      context.strokeStyle = "rgba(0, 77, 64, 0.12)";
-      context.lineWidth = 1;
-      context.fillStyle = "#60717c";
-      context.font = "12px Segoe UI, sans-serif";
-      context.textAlign = "right";
-
-      for (let i = 0; i <= 4; i += 1) {
-        const y = padding.top + (chartHeight / 4) * i;
-        const value = yMax - (yMax / 4) * i;
-
-        context.beginPath();
-        context.moveTo(padding.left, y);
-        context.lineTo(width - padding.right, y);
-        context.stroke();
-        context.fillText(`${value.toFixed(0)} km`, padding.left - 10, y + 4);
-      }
-
-      context.strokeStyle = "#0077b6";
-      context.lineWidth = 4;
-      context.lineJoin = "round";
-      context.lineCap = "round";
-      context.beginPath();
-      points.forEach((point, index) => {
-        if (index === 0) {
-          context.moveTo(point.x, point.y);
-        } else {
-          context.lineTo(point.x, point.y);
-        }
-      });
-      context.stroke();
-
-      points.forEach((point) => {
-        context.fillStyle = "#ff7043";
-        context.beginPath();
-        context.arc(point.x, point.y, 6, 0, Math.PI * 2);
-        context.fill();
-
-        context.fillStyle = "#004d40";
-        context.font = "700 12px Segoe UI, sans-serif";
-        context.textAlign = "center";
-        context.fillText(formatNumber(point.run.distance), point.x, point.y - 12);
-      });
-
-      const labelEvery = Math.max(1, Math.ceil(sortedRuns.length / 5));
-      context.fillStyle = "#60717c";
-      context.font = "12px Segoe UI, sans-serif";
-      context.textAlign = "center";
-      points.forEach((point, index) => {
-        if (index % labelEvery === 0 || index === points.length - 1) {
-          context.fillText(shortDate(point.run.date), point.x, height - 24);
-        }
-      });
-
-      context.fillStyle = "#004d40";
-      context.font = "800 13px Segoe UI, sans-serif";
-      context.textAlign = "left";
-      context.fillText("Distance (km)", padding.left, 20);
-    }
-
-    function createCell(text) {
-      const cell = document.createElement("td");
-      cell.textContent = text;
-      return cell;
-    }
-
-    function createActionsCell(runId) {
-      const cell = document.createElement("td");
-      const wrap = document.createElement("div");
-      const editButton = document.createElement("button");
-      const deleteButton = document.createElement("button");
-
-      wrap.className = "actions-cell";
-      editButton.className = "link-action";
-      editButton.type = "button";
-      editButton.dataset.action = "edit";
-      editButton.dataset.id = runId;
-      editButton.textContent = "Edit";
-
-      deleteButton.className = "link-action";
-      deleteButton.type = "button";
-      deleteButton.dataset.action = "delete";
-      deleteButton.dataset.id = runId;
-      deleteButton.textContent = "Delete";
-
-      wrap.append(editButton, deleteButton);
-      cell.append(wrap);
-      return cell;
-    }
-
-    function startEditing(run) {
-      runIdInput.value = run.id;
-      dateInput.value = run.date;
-      distanceInput.value = run.distance;
-      durationInput.value = run.duration;
-      heartRateInput.value = run.heartRate || "";
-      submitButton.textContent = "Update run";
-      dateInput.focus();
-      showToast("Editing selected run.");
-    }
-
-    function resetForm() {
-      form.reset();
-      runIdInput.value = "";
-      submitButton.textContent = "Add run";
-      setDefaultDate();
-    }
-
-    function setDefaultDate() {
-      dateInput.value = toDateInputValue(new Date());
-    }
-
-    function getSortedRuns() {
-      return runs.slice().sort((first, second) => {
-        const dateDifference = first.date.localeCompare(second.date);
-        return dateDifference || first.id.localeCompare(second.id);
-      });
-    }
-
-    function formatPace(minutesPerKm) {
-      const minutes = Math.floor(minutesPerKm);
-      const seconds = Math.round((minutesPerKm - minutes) * 60);
-      const normalizedMinutes = seconds === 60 ? minutes + 1 : minutes;
-      const normalizedSeconds = seconds === 60 ? 0 : seconds;
-
-      return `${normalizedMinutes}:${String(normalizedSeconds).padStart(2, "0")}`;
-    }
-
-    function formatNumber(value) {
-      return Number(value).toLocaleString(undefined, {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: value % 1 === 0 ? 0 : 1
-      });
-    }
-
-    function formatDate(value) {
-      return parseLocalDate(value).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric"
-      });
-    }
-
-    function shortDate(value) {
-      return parseLocalDate(value).toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric"
-      });
-    }
-
-    function parseLocalDate(value) {
-      const [year, month, day] = value.split("-").map(Number);
-      return new Date(year, month - 1, day);
-    }
-
-    function toDateInputValue(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    }
-
-    function getStartOfWeek(date) {
-      const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      const day = start.getDay();
-      const offset = day === 0 ? -6 : 1 - day;
-      start.setDate(start.getDate() + offset);
-      start.setHours(0, 0, 0, 0);
-      return start;
-    }
-
-    function createRunId() {
-      if (window.crypto && typeof window.crypto.randomUUID === "function") {
-        return window.crypto.randomUUID();
-      }
-
-      return `run-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    }
-
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.add("is-visible");
-      window.clearTimeout(toastTimer);
-      toastTimer = window.setTimeout(() => {
-        toast.classList.remove("is-visible");
-      }, 2400);
-    }
-  </script>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
 </body>
 </html>
