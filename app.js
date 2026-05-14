@@ -35,12 +35,15 @@ const speedBars = document.querySelector("#speed-bars");
 const contributionBar = document.querySelector("#contribution-bar");
 const contributionLegend = document.querySelector("#contribution-legend");
 const toast = document.querySelector("#toast");
+const accordionPanels = Array.from(document.querySelectorAll("details.accordion"));
 
 let runners = loadRunners();
 let runs = loadRuns();
 let toastTimer;
 
 setDefaultDates();
+setupAccordion();
+setupCrossTabSync();
 renderAll();
 
 runnerForm.addEventListener("submit", async (event) => {
@@ -290,6 +293,23 @@ function createAvatar(runner) {
   return avatar;
 }
 
+function createRunnerIdentity(runner, options = {}) {
+  const compact = options.compact === true;
+  const identity = document.createElement("div");
+  identity.className = compact ? "runner-identity runner-identity--compact" : "runner-identity";
+
+  const avatar = createAvatar(runner);
+  if (compact) {
+    avatar.classList.add("avatar--small");
+  }
+
+  const name = document.createElement("strong");
+  name.textContent = runner.name;
+
+  identity.append(avatar, name);
+  return identity;
+}
+
 function renderRunnerSelect() {
   const currentValue = runRunnerSelect.value;
   runRunnerSelect.replaceChildren();
@@ -329,7 +349,7 @@ function renderRuns() {
     const pace = run.durationSeconds / run.kilometres;
 
     row.append(
-      createCell(runner ? runner.name : "Unknown"),
+      createRunnerCell(runner),
       createCell(formatDate(run.date)),
       createCell(formatDuration(run.durationSeconds)),
       createCell(`${formatNumber(run.kilometres)} km`),
@@ -361,6 +381,7 @@ function renderDashboard() {
     return {
       id: runner.id,
       name: runner.name,
+      photoData: runner.photoData,
       totalKm: runnerRuns.reduce((sum, run) => sum + run.kilometres, 0),
       runsCount: runnerRuns.length,
       speedKmh,
@@ -390,13 +411,12 @@ function renderRunnerBars(summaryByRunner) {
     const label = document.createElement("div");
     label.className = "bar-label";
 
-    const name = document.createElement("strong");
-    name.textContent = item.name;
+    const identity = createRunnerIdentity(item, { compact: true });
 
     const value = document.createElement("span");
     value.textContent = `${item.totalKm.toFixed(2)} km (${item.runsCount} runs)`;
 
-    label.append(name, value);
+    label.append(identity, value);
 
     const track = document.createElement("div");
     track.className = "bar-track";
@@ -431,13 +451,12 @@ function renderSpeedBars(summaryByRunner) {
       const label = document.createElement("div");
       label.className = "bar-label";
 
-      const name = document.createElement("strong");
-      name.textContent = item.name;
+      const identity = createRunnerIdentity(item, { compact: true });
 
       const value = document.createElement("span");
       value.textContent = `${item.speedKmh.toFixed(2)} km/h`;
 
-      label.append(name, value);
+      label.append(identity, value);
 
       const track = document.createElement("div");
       track.className = "bar-track";
@@ -475,14 +494,12 @@ function renderContribution(summaryByRunner) {
     const legendItem = document.createElement("div");
     legendItem.className = "legend-item";
 
-    const dot = document.createElement("span");
-    dot.className = "legend-dot";
-    dot.style.background = color;
+    const identity = createRunnerIdentity(item, { compact: true });
 
     const text = document.createElement("span");
-    text.textContent = `${item.name} - ${item.totalKm.toFixed(2)} km (${item.contribution.toFixed(1)}%)`;
+    text.textContent = `${item.totalKm.toFixed(2)} km (${item.contribution.toFixed(1)}%)`;
 
-    legendItem.append(dot, text);
+    legendItem.append(identity, text);
     contributionLegend.append(legendItem);
   });
 }
@@ -490,6 +507,19 @@ function renderContribution(summaryByRunner) {
 function createCell(text) {
   const cell = document.createElement("td");
   cell.textContent = text;
+  return cell;
+}
+
+function createRunnerCell(runner) {
+  const cell = document.createElement("td");
+  if (!runner) {
+    cell.textContent = "Unknown";
+    return cell;
+  }
+
+  const identity = createRunnerIdentity(runner, { compact: true });
+  identity.classList.add("runner-inline");
+  cell.append(identity);
   return cell;
 }
 
@@ -536,6 +566,59 @@ function renderAll() {
   renderRunnerSelect();
   renderRuns();
   renderDashboard();
+}
+
+function setupAccordion() {
+  if (!accordionPanels.length) {
+    return;
+  }
+
+  let hasOpenPanel = false;
+  accordionPanels.forEach((panel, index) => {
+    if (panel.open && !hasOpenPanel) {
+      hasOpenPanel = true;
+    } else {
+      panel.open = false;
+    }
+
+    if (!hasOpenPanel && index === 0) {
+      panel.open = true;
+      hasOpenPanel = true;
+    }
+
+    panel.addEventListener("toggle", () => {
+      if (!panel.open) {
+        return;
+      }
+
+      accordionPanels.forEach((otherPanel) => {
+        if (otherPanel !== panel) {
+          otherPanel.open = false;
+        }
+      });
+    });
+  });
+}
+
+function setupCrossTabSync() {
+  window.addEventListener("storage", (event) => {
+    if (event.key && event.key !== RUNNERS_KEY && event.key !== RUNS_KEY) {
+      return;
+    }
+
+    runners = loadRunners();
+    runs = loadRuns();
+
+    if (runnerEditIdInput.value && !runners.some((runner) => runner.id === runnerEditIdInput.value)) {
+      resetRunnerForm();
+    }
+
+    if (runEditIdInput.value && !runs.some((run) => run.id === runEditIdInput.value)) {
+      resetRunForm();
+    }
+
+    renderAll();
+  });
 }
 
 function startRunnerEdit(runner) {
