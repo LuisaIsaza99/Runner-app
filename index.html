@@ -16,114 +16,150 @@
   </header>
 
   <main class="layout">
-    <section class="panel" id="runners" aria-labelledby="runners-title">
-      <h2 id="runners-title">Runners</h2>
-      <p class="panel__intro">
-        Add runner name, optional photo (or default icon), and the date they joined the club.
-      </p>
-      <form id="runner-form" class="form-grid">
-        <label for="runner-name">
-          Runner name
-          <input id="runner-name" type="text" maxlength="60" placeholder="Ex: Maria Soto" required>
-        </label>
-        <div class="form-row">
-          <label for="runner-join-date">
-            Join date
-            <input id="runner-join-date" type="date" required>
+    <details class="panel accordion" id="runners" open>
+      <summary class="accordion__summary">
+        <h2>Runners</h2>
+        <span class="accordion__hint">Open / Close</span>
+      </summary>
+      <div class="accordion__content">
+        <p class="panel__intro">
+          Add runner name, optional photo (or default icon), and the date they joined the club.
+        </p>
+        <form id="runner-form" class="form-grid">
+          <input type="hidden" id="runner-edit-id">
+          <label for="runner-name">
+            Runner name
+            <input id="runner-name" type="text" maxlength="60" placeholder="Ex: Maria Soto" required>
           </label>
-          <label for="runner-photo">
-            Photo (optional)
-            <input id="runner-photo" type="file" accept="image/*">
+          <div class="form-row">
+            <label for="runner-join-date">
+              Join date
+              <input id="runner-join-date" type="date" required>
+            </label>
+            <label for="runner-photo">
+              Photo (optional)
+              <input id="runner-photo" type="file" accept="image/*">
+            </label>
+          </div>
+          <div class="button-row">
+            <button id="runner-submit" class="button button--primary" type="submit">Add runner</button>
+            <button id="runner-cancel" class="button button--secondary" type="button" hidden>Cancel edit</button>
+          </div>
+        </form>
+
+        <div id="runner-empty" class="empty-state">No runners yet. Add the first member.</div>
+        <ul id="runner-list" class="runner-list" hidden></ul>
+      </div>
+    </details>
+
+    <details class="panel accordion" id="runs" open>
+      <summary class="accordion__summary">
+        <h2>Runs</h2>
+        <span class="accordion__hint">Open / Close</span>
+      </summary>
+      <div class="accordion__content">
+        <p class="panel__intro">
+          Select a runner and save run time (hours, minutes, seconds) plus kilometres (supports decimals).
+        </p>
+        <form id="run-form" class="form-grid">
+          <input type="hidden" id="run-edit-id">
+          <label for="run-runner">
+            Runner
+            <select id="run-runner" required></select>
           </label>
+          <label for="run-date">
+            Run date
+            <input id="run-date" type="date" required>
+          </label>
+          <div class="form-row form-row--three">
+            <label for="run-hours">
+              Hours
+              <input id="run-hours" type="number" min="0" max="23" step="1" value="0" required>
+            </label>
+            <label for="run-minutes">
+              Minutes
+              <input id="run-minutes" type="number" min="0" max="59" step="1" value="0" required>
+            </label>
+            <label for="run-seconds">
+              Seconds
+              <input id="run-seconds" type="number" min="0" max="59" step="1" value="0" required>
+            </label>
+          </div>
+          <label for="run-kilometres">
+            Kilometres
+            <input id="run-kilometres" type="number" min="0.01" step="0.01" placeholder="5.25" required>
+          </label>
+          <div class="button-row">
+            <button id="run-submit" class="button button--primary" type="submit">Log run</button>
+            <button id="run-cancel" class="button button--secondary" type="button" hidden>Cancel edit</button>
+          </div>
+        </form>
+
+        <div id="run-empty" class="empty-state">No runs logged yet.</div>
+        <div id="run-table-wrap" class="table-wrap" hidden>
+          <table>
+            <thead>
+              <tr>
+                <th>Runner</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Kilometres</th>
+                <th>Pace</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="run-table-body"></tbody>
+          </table>
         </div>
-        <button class="button button--primary" type="submit">Add runner</button>
-      </form>
+      </div>
+    </details>
 
-      <div id="runner-empty" class="empty-state">No runners yet. Add the first member.</div>
-      <ul id="runner-list" class="runner-list" hidden></ul>
-    </section>
+    <details class="panel accordion" id="dashboard" open>
+      <summary class="accordion__summary">
+        <h2>Dashboard</h2>
+        <span class="accordion__hint">Open / Close</span>
+      </summary>
+      <div class="accordion__content">
+        <p class="panel__intro">Live club performance summary and comparison bars.</p>
 
-    <section class="panel" id="runs" aria-labelledby="runs-title">
-      <h2 id="runs-title">Runs</h2>
-      <p class="panel__intro">
-        Select a runner and save run time (hours, minutes, seconds) plus kilometres (supports decimals).
-      </p>
-      <form id="run-form" class="form-grid">
-        <label for="run-runner">
-          Runner
-          <select id="run-runner" required></select>
-        </label>
-        <label for="run-date">
-          Run date
-          <input id="run-date" type="date" required>
-        </label>
-        <div class="form-row form-row--three">
-          <label for="run-hours">
-            Hours
-            <input id="run-hours" type="number" min="0" max="23" step="1" value="0" required>
-          </label>
-          <label for="run-minutes">
-            Minutes
-            <input id="run-minutes" type="number" min="0" max="59" step="1" value="0" required>
-          </label>
-          <label for="run-seconds">
-            Seconds
-            <input id="run-seconds" type="number" min="0" max="59" step="1" value="0" required>
-          </label>
+        <div class="stats-grid">
+          <article class="stat-box">
+            <h3>Total team kilometres</h3>
+            <p id="team-km">0.00 km</p>
+          </article>
+          <article class="stat-box">
+            <h3>Total runs</h3>
+            <p id="team-runs">0</p>
+          </article>
+          <article class="stat-box">
+            <h3>Average team pace</h3>
+            <p id="team-pace">--:-- /km</p>
+          </article>
+          <article class="stat-box">
+            <h3>Total team time</h3>
+            <p id="team-time">00:00:00</p>
+          </article>
         </div>
-        <label for="run-kilometres">
-          Kilometres
-          <input id="run-kilometres" type="number" min="0.01" step="0.01" placeholder="5.25" required>
-        </label>
-        <button class="button button--primary" type="submit">Log run</button>
-      </form>
 
-      <div id="run-empty" class="empty-state">No runs logged yet.</div>
-      <div id="run-table-wrap" class="table-wrap" hidden>
-        <table>
-          <thead>
-            <tr>
-              <th>Runner</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Kilometres</th>
-              <th>Pace</th>
-            </tr>
-          </thead>
-          <tbody id="run-table-body"></tbody>
-        </table>
+        <div class="dashboard-grid">
+          <div class="dashboard-subsection">
+            <h3>Distance by runner</h3>
+            <div id="runner-bars" class="bars-wrap"></div>
+          </div>
+
+          <div class="dashboard-subsection">
+            <h3>Speed by runner (km/h)</h3>
+            <div id="speed-bars" class="bars-wrap"></div>
+          </div>
+        </div>
+
+        <div class="dashboard-subsection">
+          <h3>Team contribution split</h3>
+          <div id="contribution-bar" class="contribution-bar"></div>
+          <div id="contribution-legend" class="contribution-legend"></div>
+        </div>
       </div>
-    </section>
-
-    <section class="panel panel--dashboard" id="dashboard" aria-labelledby="dashboard-title">
-      <h2 id="dashboard-title">Dashboard</h2>
-      <p class="panel__intro">Bar view for individual and team performance.</p>
-
-      <div class="stats-grid">
-        <article class="stat-box">
-          <h3>Total team kilometres</h3>
-          <p id="team-km">0.00 km</p>
-        </article>
-        <article class="stat-box">
-          <h3>Total runs</h3>
-          <p id="team-runs">0</p>
-        </article>
-        <article class="stat-box">
-          <h3>Average team pace</h3>
-          <p id="team-pace">--:-- /km</p>
-        </article>
-      </div>
-
-      <div class="dashboard-subsection">
-        <h3>Runner performance (by total kilometres)</h3>
-        <div id="runner-bars" class="bars-wrap"></div>
-      </div>
-
-      <div class="dashboard-subsection">
-        <h3>Whole team performance (goal: 100 km)</h3>
-        <div id="team-bar-wrap" class="team-bar-wrap"></div>
-      </div>
-    </section>
+    </details>
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
